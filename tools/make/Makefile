@@ -80,6 +80,7 @@ include $(TOOLS_MAKE_LIB_DIR)/coverage-service/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/dist/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/docs/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/examples/Makefile
+include $(TOOLS_MAKE_LIB_DIR)/git/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/install/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/licenses/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/links/Makefile
@@ -88,6 +89,7 @@ include $(TOOLS_MAKE_LIB_DIR)/ls/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/markdown/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/notes/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/repl/Makefile
+include $(TOOLS_MAKE_LIB_DIR)/scaffold/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/stats/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/test/Makefile
 include $(TOOLS_MAKE_LIB_DIR)/test-browsers/Makefile

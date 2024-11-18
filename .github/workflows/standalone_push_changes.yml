@@ -31,6 +31,11 @@ on:
       # List paths for which changes should *not* trigger this workflow:
       - '!lib/node_modules/@stdlib/_tools/**'
 
+# Global permissions:
+permissions:
+  # Allow read-only access to the repository contents:
+  contents: read
+
 # Workflow jobs:
 jobs:
 
@@ -38,7 +43,7 @@ jobs:
   push:
 
     # Define a display name:
-    name: 'Push Changes to Standalone Packages'
+    name: 'Push changes'
 
     # Define the type of virtual host machine:
     runs-on: ubuntu-latest
@@ -48,23 +53,36 @@ jobs:
 
       # Checkout the repository:
       - name: 'Checkout repository'
-        uses: actions/checkout@v2
+        # Pin action to full length commit SHA
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           # Specify whether to remove untracked files before checking out the repository:
           clean: false
 
-          # Limit clone depth to the most recent 100 commits:
-          fetch-depth: 100
+          # Fetch all history to allow for changelog generation:
+          fetch-depth: 0
 
           # Specify whether to download Git-LFS files:
           lfs: false
         timeout-minutes: 10
 
+      # Configure Git:
+      - name: 'Configure Git'
+        run: |
+          git config --local user.email "82920195+stdlib-bot@users.noreply.github.com"
+          git config --local user.name "stdlib-bot"
+
+      # Apply Git notes:
+      - name: 'Apply Git notes'
+        run: |
+          make apply-git-notes
+
       # Install Node.js:
       - name: 'Install Node.js'
-        uses: actions/setup-node@v2
+        # Pin action to full length commit SHA
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: '16' # 'lts/*'
+          node-version: '20' # 'lts/*'
         timeout-minutes: 5
 
       # Install dependencies (accounting for possible network failures, etc, when installing node module dependencies):
@@ -73,14 +91,15 @@ jobs:
           make install-node-modules || make install-node-modules || make install-node-modules
         timeout-minutes: 15
 
-      # Retrieve list of changed stdlib packages in a push or pull request:
+      # Retrieve list of changed packages:
       - name: 'Find changed packages'
         id: 'changed_packages'
-        uses: stdlib-js/changed-packages-action@v1
+        # Pin action to full length commit SHA
+        uses: stdlib-js/changed-packages-action@e489c6b4eff164c5912a0b2d17d7462f38c11712 # v2.0.0
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Push changes to the packages' repositories:
+      # Push changes to the package repositories:
       - name: 'Push changes'
         if: ${{ steps.changed_packages.outputs.packages != '[]' }}
         env:
@@ -133,7 +152,8 @@ jobs:
 
       # Send notification to Slack:
       - name: 'Send notification'
-        uses: 8398a7/action-slack@v3
+        # Pin action to full length commit SHA
+        uses: 8398a7/action-slack@28ba43ae48961b90635b50953d216767a6bea486 # v3.16.2
         if: success()
         with:
           status: "${{ env.NOTIFICATION_STATUS }}"

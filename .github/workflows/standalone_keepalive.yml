@@ -23,7 +23,6 @@ name: standalone_keepalive
 on:
   # Run the workflow on the first day of each month:
   schedule:
-    # * is a special character in YAML so you have to quote this string
     - cron: '0 0 1 * *'
 
   # Allow the workflow to be manually run:
@@ -38,6 +37,11 @@ concurrency:
   # Specify whether to cancel any currently running workflow in the same concurrency group:
   cancel-in-progress: false
 
+# Global permissions:
+permissions:
+  # Allow read-only access to the repository contents:
+  contents: read
+
 # Workflow jobs:
 jobs:
 
@@ -45,7 +49,10 @@ jobs:
   keepalive:
 
     # Define a display name:
-    name: 'Keep Alive'
+    name: 'Keep alive'
+
+    # Ensure the job does not run on forks:
+    if: github.repository == 'stdlib-js/stdlib'
 
     # Define the type of virtual host machine:
     runs-on: ubuntu-latest
@@ -55,23 +62,37 @@ jobs:
 
       # Checkout the repository:
       - name: 'Checkout repository'
-        uses: actions/checkout@v2
+        # Pin action to full length commit SHA
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           # Specify whether to remove untracked files before checking out the repository:
           clean: false
 
-          # Limit clone depth to the most recent commit:
-          fetch-depth: 1
+          # Fetch all history to allow for changelog generation:
+          fetch-depth: 0
 
           # Specify whether to download Git-LFS files:
           lfs: false
         timeout-minutes: 10
 
+      # Configure Git:
+      - name: 'Configure Git'
+        run: |
+          git config --local user.email "82920195+stdlib-bot@users.noreply.github.com"
+          git config --local user.name "stdlib-bot"
+
+      # Apply Git notes:
+      - name: 'Apply Git notes'
+        run: |
+          make apply-git-notes
+        timeout-minutes: 5
+
       # Install Node.js:
       - name: 'Install Node.js'
-        uses: actions/setup-node@v2
+        # Pin action to full length commit SHA
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: '16' # 'lts/*'
+          node-version: '20' # 'lts/*'
         timeout-minutes: 5
 
       # Install dependencies (accounting for possible network failures, etc, when installing node module dependencies):

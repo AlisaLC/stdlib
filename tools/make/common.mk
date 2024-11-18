@@ -28,7 +28,7 @@ endif
 # GENERAL VARIABLES #
 
 # Define supported Node.js versions:
-NODE_VERSIONS ?= '0.10 0.12 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 node'
+NODE_VERSIONS ?= '0.10 0.12 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 node'
 
 # Define a license SPDX identifier whitelist:
 LICENSES_WHITELIST ?= 'Apache-2.0,Artistic-2.0,BSD-2-Clause,BSD-3-Clause,BSL-1.0,CC0-1.0,ISC,MIT,MPL-2.0,Unlicense,WTFPL'
@@ -47,6 +47,16 @@ else
 endif
 endif
 
+# Indicate whether to fix linting errors:
+ifndef FIX
+	AUTOFIX := false
+else
+ifeq ($(FIX), 1)
+	AUTOFIX := true
+else
+	AUTOFIX := false
+endif
+endif
 
 # ENVIRONMENTS #
 
@@ -104,16 +114,16 @@ JAVASCRIPT_TEST_RUNNER ?= tape
 JAVASCRIPT_LINTER ?= eslint
 
 # Define the code coverage instrumentation utility:
-JAVASCRIPT_CODE_INSTRUMENTER ?= istanbul
+JAVASCRIPT_CODE_INSTRUMENTER ?= c8
 
 # Define the linter to use when linting TypeScript files:
-TYPESCRIPT_LINTER ?= tslint
+TYPESCRIPT_LINTER ?= eslint
 
 # Define the linter to use when linting TypeScript declaration files:
-TYPESCRIPT_DECLARATIONS_LINTER ?= dtslint
+TYPESCRIPT_DECLARATIONS_LINTER ?= eslint
 
 # Define the browser test runner:
-BROWSER_TEST_RUNNER ?= testling
+BROWSER_TEST_RUNNER ?=
 
 # Define the analysis tool to use when analyzing JavaScript files:
 JAVASCRIPT_COMPLEXITY_TOOL ?= plato
@@ -132,6 +142,12 @@ SHELL_LINTER ?= shellcheck
 
 # Define the linter to use when linting C files:
 C_LINTER ?= cppcheck
+
+# Define the linter to use when linting Git commit messages:
+GIT_COMMIT_LINTER ?= commitlint
+
+# Define the tool for providing an interactive Git prompt for entering commit messages:
+GIT_COMMIT_PROMPT ?= commitizen
 
 
 # COMMANDS #
@@ -154,6 +170,12 @@ MAKE_EXECUTABLE ?= chmod +x
 
 # Define the command for recursively creating directories (WARNING: portability issues on some systems!):
 MKDIR_RECURSIVE ?= mkdir -p
+
+# Define a command for creating a file:
+TOUCH ?= touch
+
+# Define a command for selecting lines which are unique to a file when compared to another file:
+UNIQUE_LINES ?= comm -23
 
 # Define the command for extracting tarfiles:
 TAR ?= tar
@@ -285,6 +307,17 @@ TAP_REPORTER ?= $(BIN_DIR)/tap-spec
 # [1]: https://github.com/zoubin/tap-summary
 TAP_SUMMARY ?= $(BIN_DIR)/tap-summary
 
+# Define the path to the [`tap--min`][1] executable.
+#
+# To install `tap-min`:
+#
+# ```bash
+# $ npm install tap-min
+# ```
+#
+# [1]: https://github.com/derhuerst/tap-min
+TAP_MIN ?= $(BIN_DIR)/tap-min
+
 # Define the path to the [`tap-xunit`][1] executable.
 #
 # To install `tap-xunit`:
@@ -358,6 +391,9 @@ BLAS ?=
 # Define the path to the BLAS library (used for includes and linking):
 BLAS_DIR ?=
 
+# Define the primary integer type to use in BLAS routines:
+CBLAS_INT ?=
+
 # Define the path for building dependencies:
 DEPS_BUILD_DIR ?= $(DEPS_DIR)/build
 
@@ -371,7 +407,7 @@ deps_boost_version_slug := $(subst .,_,$(DEPS_BOOST_VERSION))
 DEPS_BOOST_BUILD_OUT ?= $(DEPS_BUILD_DIR)/boost_$(deps_boost_version_slug)
 
 # Define the OpenBLAS version:
-DEPS_OPENBLAS_VERSION ?= 0.2.19
+DEPS_OPENBLAS_VERSION ?= 0.3.27
 
 # Generate a version slug:
 deps_openblas_version_slug := $(subst .,_,$(DEPS_OPENBLAS_VERSION))
@@ -396,6 +432,9 @@ DEPS_OPENBLAS_CFLAGS ?=
 
 # Fortran compiler flags:
 DEPS_OPENBLAS_FFLAGS ?= -O3 $(fPIC)
+
+# Flag indicating whether to use clang:
+DEPS_OPENBLAS_USE_CLANG ?=
 
 # Specify stack alignment on Windows.
 #
@@ -431,6 +470,9 @@ DEPS_OPENBLAS_NO_AVX ?= 1
 # Specify whether to use Haswell optimizations if binutils is too old (e.g. RHEL6):
 DEPS_OPENBLAS_NO_AVX2 ?= 1
 
+# Specify whether to use 512-bit extensions to AVX instructions:
+DEPS_OPENBLAS_NO_AVX512 ?= 1
+
 # Specify whether to compile CBLAS:
 DEPS_OPENBLAS_NO_CBLAS ?= 0
 
@@ -451,14 +493,38 @@ ifeq (, $(BLAS_DIR))
 endif
 endif
 
+# Define the output path when building LLVM:
+DEPS_LLVM_BUILD_OUT ?= $(DEPS_BUILD_DIR)/llvm
+
+# Define the LLVM version:
+DEPS_LLVM_VERSION ?=
+
+# Define the path to the LLVM clang compiler:
+DEPS_LLVM_CLANG ?= $(DEPS_LLVM_BUILD_OUT)/build/bin/clang
+
+# Define the path to the LLVM archiver:
+DEPS_LLVM_AR ?= $(DEPS_LLVM_BUILD_OUT)/build/bin/llvm-ar
+
+# Define the path to the LLVM tool for listing LLVM bitcode and object file symbol tables:
+DEPS_LLVM_NM ?= $(DEPS_LLVM_BUILD_OUT)/build/bin/llvm-nm
+
+# Define the output path when building WASI libc:
+DEPS_WASI_LIBC_BUILD_OUT ?= $(DEPS_BUILD_DIR)/wasi-libc
+
+# Define the WASI libc version:
+DEPS_WASI_LIBC_VERSION ?=
+
+# Define the path to WASI libc sysroot:
+DEPS_WASI_LIBC_SYSROOT ?= $(DEPS_WASI_LIBC_BUILD_OUT)/sysroot
+
 # Define the output path when building the Emscripten SDK:
 DEPS_EMSDK_BUILD_OUT ?= $(DEPS_BUILD_DIR)/emsdk
 
 # Define the Emscripten SDK version:
-DEPS_EMSDK_VERSION ?= incoming
+DEPS_EMSDK_VERSION ?= latest
 
 # Define the path to Emscripten:
-DEPS_EMSDK_EMSCRIPTEN ?= $(DEPS_EMSDK_BUILD_OUT)/emscripten/$(DEPS_EMSDK_VERSION)
+DEPS_EMSDK_EMSCRIPTEN ?= $(DEPS_EMSDK_BUILD_OUT)/upstream/emscripten
 
 # Define the path to the Emscripten C compiler:
 DEPS_EMSDK_EMSCRIPTEN_EMCC ?= $(DEPS_EMSDK_EMSCRIPTEN)/emcc
@@ -466,20 +532,17 @@ DEPS_EMSDK_EMSCRIPTEN_EMCC ?= $(DEPS_EMSDK_EMSCRIPTEN)/emcc
 # Define the path to the Emscripten C++ compiler:
 DEPS_EMSDK_EMSCRIPTEN_EMXX ?= $(DEPS_EMSDK_EMSCRIPTEN)/em++
 
-# Define the Binaryen version:
-DEPS_EMSDK_BINARYEN_VERSION ?= master
+# Define the path to the utility for converting WebAssembly binary files to JavaScript:
+DEPS_EMSDK_EMSCRIPTEN_WASM2JS ?= $(DEPS_EMSDK_BUILD_OUT)/upstream/bin/wasm2js
 
 # Define the output path when building the WebAssembly Binary Toolkit (WABT):
 DEPS_WABT_BUILD_OUT ?= $(DEPS_BUILD_DIR)/wabt
 
 # Define the path to the utility for converting WebAssembly binary files to the WebAssembly text format:
-DEPS_WABT_WASM2WAT ?= $(DEPS_WABT_BUILD_OUT)/wasm2wat
+DEPS_WABT_WASM2WAT ?= $(DEPS_WABT_BUILD_OUT)/build/wasm2wat
 
 # Define the path to the utility for converting WebAssembly text format files to the WebAssembly binary format:
-DEPS_WABT_WAT2WASM ?= $(DEPS_WABT_BUILD_OUT)/wat2wasm
-
-# Define the path to the utility for linking (merging) multiple WebAssembly files:
-DEPS_WABT_WASM_LINK ?= $(DEPS_WABT_BUILD_OUT)/wasm-link
+DEPS_WABT_WAT2WASM ?= $(DEPS_WABT_BUILD_OUT)/build/wat2wasm
 
 # Define the Cephes distribution to build (netlib, moshier, cephes-2.8):
 DEPS_CEPHES_DIST ?= moshier
@@ -541,8 +604,8 @@ else
 endif
 endif
 
-# Define the Electron version (NOTE: whenever updated, update the `david` configuration file):
-DEPS_ELECTRON_VERSION ?= 6.0.10
+# Define the Electron version:
+DEPS_ELECTRON_VERSION ?= 25.3.1
 
 # Generate a version slug:
 deps_electron_version_slug := $(subst .,_,$(DEPS_ELECTRON_VERSION))
@@ -557,7 +620,7 @@ DEPS_ELECTRON_ARCH := $(shell command -v $(NODE) >/dev/null 2>&1 && $(NODE_HOST_
 DEPS_ELECTRON_PLATFORM := $(shell command -v $(NODE) >/dev/null 2>&1 && $(NODE_HOST_PLATFORM))
 
 # Define the shellcheck version:
-DEPS_SHELLCHECK_VERSION ?= 0.5.0
+DEPS_SHELLCHECK_VERSION ?= 0.8.0
 
 # Generate a version slug:
 deps_shellcheck_version_slug := $(subst .,_,$(DEPS_SHELLCHECK_VERSION))
@@ -565,11 +628,14 @@ deps_shellcheck_version_slug := $(subst .,_,$(DEPS_SHELLCHECK_VERSION))
 # Define the output path when building shellcheck:
 DEPS_SHELLCHECK_BUILD_OUT ?= $(DEPS_BUILD_DIR)/shellcheck_$(deps_shellcheck_version_slug)
 
+# Host architecture:
+DEPS_SHELLCHECK_ARCH := $(shell command -v $(NODE) >/dev/null 2>&1 && $(NODE_HOST_ARCH))
+
 # Host platform:
 DEPS_SHELLCHECK_PLATFORM := $(shell command -v $(NODE) >/dev/null 2>&1 && $(NODE_HOST_PLATFORM))
 
 # Define the cppcheck version:
-DEPS_CPPCHECK_VERSION ?= 2.5
+DEPS_CPPCHECK_VERSION ?= 2.15.0
 
 # Generate a version slug:
 deps_cppcheck_version_slug := $(subst .,_,$(DEPS_CPPCHECK_VERSION))
@@ -579,3 +645,9 @@ DEPS_CPPCHECK_BUILD_OUT ?= $(DEPS_BUILD_DIR)/cppcheck_$(deps_cppcheck_version_sl
 
 # Host platform:
 DEPS_CPPCHECK_PLATFORM := $(shell command -v $(NODE) >/dev/null 2>&1 && $(NODE_HOST_PLATFORM))
+
+# API key for the stdlib scaffolding service:
+ifneq ($(wildcard .stdlibrc),)
+	include .stdlibrc
+	export SCAFFOLD_API_KEY
+endif

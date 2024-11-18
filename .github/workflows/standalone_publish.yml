@@ -21,11 +21,31 @@ name: standalone_publish
 
 # Workflow triggers:
 on:
-  push:
-    tags: v[0-9]+.[0-9]+.[0-9]+
-
   # Allow the workflow to be manually run:
   workflow_dispatch:
+    inputs:
+      release-type:
+        type: choice
+        description: 'Type of release to create'
+        default: 'none'
+        options:
+        - none
+        - patch
+        - minor
+        - major
+        - auto
+      dry-run:
+        type: boolean
+        description: 'Skip uploading packages (dry run):'
+        default: false
+      start-index:
+        type: number
+        description: 'Index of first package to publish'
+        default: 0
+      end-index:
+        type: number
+        description: 'Index of last package to publish'
+        default: 9999
 
 # Workflow concurrency group:
 concurrency:
@@ -35,6 +55,11 @@ concurrency:
 
   # Specify whether to cancel any currently running workflow in the same concurrency group:
   cancel-in-progress: false
+
+# Global permissions:
+permissions:
+  # Allow read-only access to the repository contents:
+  contents: read
 
 # Workflow jobs:
 jobs:
@@ -53,23 +78,36 @@ jobs:
 
       # Checkout the repository:
       - name: 'Checkout repository'
-        uses: actions/checkout@v2
+        # Pin action to full length commit SHA
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           # Specify whether to remove untracked files before checking out the repository:
           clean: false
 
-          # Limit clone depth to the most recent commit:
-          fetch-depth: 1
+          # Fetch all history to allow for changelog generation:
+          fetch-depth: 0
 
           # Specify whether to download Git-LFS files:
           lfs: false
         timeout-minutes: 10
 
+      # Configure Git:
+      - name: 'Configure Git'
+        run: |
+          git config --local user.email "82920195+stdlib-bot@users.noreply.github.com"
+          git config --local user.name "stdlib-bot"
+
+      # Apply Git notes:
+      - name: 'Apply Git notes'
+        run: |
+          make apply-git-notes
+
       # Install Node.js:
       - name: 'Install Node.js'
-        uses: actions/setup-node@v2
+        # Pin action to full length commit SHA
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: '16' # 'lts/*'
+          node-version: '20' # 'lts/*'
         timeout-minutes: 5
 
       # Install dependencies (accounting for possible network failures, etc, when installing node module dependencies):
@@ -82,12 +120,17 @@ jobs:
       - name: 'Publish packages'
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          node lib/node_modules/@stdlib/_tools/scripts/publish_packages.js --patch --skip-toplevel
+          # Save NPM_TOKEN to user's .npmrc:
+          echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+
+          node lib/node_modules/@stdlib/_tools/scripts/publish_packages.js --skip-toplevel --release-type=${{ github.event.inputs.release-type }} --start-index=${{ github.event.inputs.start-index }} --end-index=${{ github.event.inputs.end-index }} ${{ github.event.inputs.dry-run == 'true' && '--skip-upload ' || '' }}
 
       # Archive list of to be published packages:
       - name: 'Archive package list'
-        uses: actions/upload-artifact@v2
+        # Pin action to full length commit SHA
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         with:
           name: ordered-pkg-list
           path: |
@@ -138,7 +181,8 @@ jobs:
 
       # Send notification to Slack:
       - name: 'Send notification'
-        uses: 8398a7/action-slack@v3
+        # Pin action to full length commit SHA
+        uses: 8398a7/action-slack@28ba43ae48961b90635b50953d216767a6bea486 # v3.16.2
         if: success()
         with:
           status: "${{ env.NOTIFICATION_STATUS }}"

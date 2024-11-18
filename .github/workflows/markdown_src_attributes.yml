@@ -28,6 +28,11 @@ on:
   # Allow the workflow to be manually run:
   workflow_dispatch:
 
+# Global permissions:
+permissions:
+  # Allow read-only access to the repository contents:
+  contents: read
+
 # Workflow jobs:
 jobs:
 
@@ -57,7 +62,8 @@ jobs:
 
       # Checkout the repository:
       - name: 'Checkout repository'
-        uses: actions/checkout@v2
+        # Pin action to full length commit SHA
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           # Specify whether to remove untracked files before checking out the repository:
           clean: true
@@ -79,7 +85,8 @@ jobs:
 
       # Check for broken `src` attribute URLs:
       - name: 'Check `src` attribute URLs'
-        uses: stdlib-js/check-markdown-src-action@main
+        # Pin action to full length commit SHA
+        uses: stdlib-js/check-markdown-src-action@9d9c0883b8c06a04576a146e480ef7937c51cdbf # v2.0.1
         id: results
         with:
           exclude: /path/to/
@@ -108,7 +115,8 @@ jobs:
 
       # Upload the log files:
       - name: 'Upload log files'
-        uses: actions/upload-artifact@v2
+        # Pin action to full length commit SHA
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         if: always()
         with:
           # Define a name for the uploaded artifact:
@@ -167,7 +175,8 @@ jobs:
 
       # Send notification to Slack:
       - name: 'Send notification'
-        uses: 8398a7/action-slack@v3
+        # Pin action to full length commit SHA
+        uses: 8398a7/action-slack@28ba43ae48961b90635b50953d216767a6bea486 # v3.16.2
         if: success()
         with:
           status: "${{ env.NOTIFICATION_STATUS }}"

@@ -20,13 +20,21 @@
 name: check_licenses
 
 # Workflow triggers:
-on: [pull_request]
+on: [ pull_request ]
+
+# Global permissions:
+permissions:
+  # Allow read-only access to the repository contents:
+  contents: read
 
 # Workflow jobs:
 jobs:
 
   # Define a job for checking that pull requests do not introduce dependencies which fail license requirements...
   check_licenses:
+
+    # Define a display name:
+    name: 'Check licenses'
 
     # Define the type of virtual host machine:
     runs-on: ubuntu-latest
@@ -50,7 +58,8 @@ jobs:
 
       # Checkout the repository:
       - name: 'Checkout repository'
-        uses: actions/checkout@v2
+        # Pin action to full length commit SHA
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
         with:
           # Specify whether to remove untracked files before checking out the repository:
           clean: false
@@ -71,9 +80,10 @@ jobs:
 
       # Install Node.js:
       - name: 'Install Node.js'
-        uses: actions/setup-node@v2
+        # Pin action to full length commit SHA
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
-          node-version: '16' # 'lts/*'
+          node-version: '20' # 'lts/*'
         timeout-minutes: 5
 
       # Print debug info:
@@ -117,7 +127,8 @@ jobs:
 
       # Upload the log file:
       - name: 'Upload log file'
-        uses: actions/upload-artifact@v2
+        # Pin action to full length commit SHA
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
         if: always()
         with:
           # Define a name for the uploaded artifact:

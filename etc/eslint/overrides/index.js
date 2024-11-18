@@ -18,6 +18,11 @@
 
 'use strict';
 
+// MODULES //
+
+var resolve = require( 'path' ).resolve;
+
+
 // VARIABLES //
 
 var restrictedSyntaxConfig = [ 'error',
@@ -152,8 +157,17 @@ var overrides = [
 			'stdlib/jsdoc-return-annotations-values': 'off',
 			'stdlib/return-annotations-values': 'off',
 			'strict': 'off',
-			'vars-on-top': 'off'
+			'vars-on-top': 'off',
+			'node/no-unpublished-require': 'off'
 		}
+	},
+	{
+		'files': [ '*.d.ts' ],
+		'extends': resolve( __dirname, '..', '.eslintrc.typescript.js' )
+	},
+	{
+		'files': [ '**/test/*.ts' ],
+		'extends': resolve( __dirname, '..', '.eslintrc.typescript.tests.js' )
 	}
 ];
 

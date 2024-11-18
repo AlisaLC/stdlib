@@ -386,7 +386,7 @@
 	{
 		"command": "js-eval",
 		"description": "Evaluate a JavaScript string.",
-		"path": "@stdlib/utils/js-eval",
+		"path": "@stdlib/utils/eval",
 		"group": "utilities"
 	},
 	{
@@ -656,7 +656,7 @@
 	{
 		"command": "random-Rayleigh",
 		"description": "Rayleigh distributed pseudorandom numbers.",
-		"path": "@stdlib/random/streams/Rayleigh",
+		"path": "@stdlib/random/streams/rayleigh",
 		"group": "random"
 	},
 	{

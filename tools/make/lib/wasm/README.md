@@ -1,3 +1,23 @@
+<!--
+
+@license Apache-2.0
+
+Copyright (c) 2017 The Stdlib Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+-->
+
 # WebAssembly
 
 > WebAssembly commands.
@@ -36,7 +56,7 @@ $ make wasm
 
 The command supports the following environment variables:
 
--   **PKGS_WASM_PATTERN**: package pattern; e.g., `**/math/base/special/**/package.json`.
+-   **PKGS_WASM_PATTERN**: package pattern; e.g., `blas/base/daxpy-wasm`.
 
 If unable to compile WebAssemby artifacts, the command prints an error message and tries compiling WebAssembly artifacts for the next package.
 
@@ -52,7 +72,7 @@ $ make clean-wasm
 
 The command supports the following environment variables:
 
--   **PKGS_WASM_PATTERN**: package pattern; e.g., `**/math/base/special/**/package.json`.
+-   **PKGS_WASM_PATTERN**: package pattern; e.g., `blas/base/daxpy-wasm`.
 
 </section>
 
